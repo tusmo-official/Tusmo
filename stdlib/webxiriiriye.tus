@@ -1,0 +1,153 @@
+// stdlib/webxiriiriye.tus
+// WebSocket library for Tusmo with Somali keywords
+// WebXiriiriye = WebSocket
+
+koox WebXiriiriye {
+            """
+        Bilow WebSocket madhan (Initialize empty WebSocket)
+        
+        Tusaale:
+            keyd:WebXiriiriye ws = WebXiriiriye() cusub;
+        """
+    keyd:eray socket_handle;
+    keyd:miyaa waa_xiran;
+    
+    dhis(): waxbo {
+        kan.socket_handle = "";
+        kan.waa_xiran = been;
+    }
+    
+    shaqo kor_u_qaad(client_socket_handle:eray, ws_key:eray): waxbo {
+        """
+        Kor u qaad HTTP codsi una beddel WebSocket
+        (Upgrade HTTP request to WebSocket)
+        
+        Parameters:
+            client_socket_handle (eray): Socket handle-ka macmiilka
+            ws_key (eray): Sec-WebSocket-Key header
+        
+        Tusaale:
+            keyd:WebXiriiriye ws = WebXiriiriye() cusub;
+            ws.kor_u_qaad(client_handle, ws_key);
+        """
+        // Generate and send in one call
+        ___c__call_("tusmo_ws_send_upgrade_response", 
+                    client_socket_handle,
+                    ___c__call_("tusmo_ws_generate_accept_key", ws_key));
+        
+        kan.socket_handle = client_socket_handle;
+        kan.waa_xiran = run;
+    }
+    
+    shaqo dir_qoraal(fariin:eray): tiro {
+        """
+        Dir fariin qoraal ah (Send text message)
+        
+        Parameters:
+            fariin (eray): Fariinta qoraalka ah ee la dirayo
+        
+        Soo celisa:
+            tiro: Tirada bytes la diray, -1 haddii qalad dhacdo
+        
+        Tusaale:
+            ws.dir_qoraal("Soo dhawow WebSocket!");
+        """
+        haddii (kan.waa_xiran == been) {
+            soo_celi 1;
+        }
+        soo_celi ___c__call_("tusmo_ws_send_text", kan.socket_handle, fariin);
+    }
+    
+    shaqo dir_binary(xog:eray): tiro {
+        """
+        Dir xog binary (Send binary data)
+        
+        Parameters:
+            xog (eray): Xogta binary ee la dirayo
+        
+        Soo celisa:
+            tiro: Tirada bytes la diray, -1 haddii qalad dhacdo
+        """
+        haddii (kan.waa_xiran == been) {
+            soo_celi 1;
+        }
+        soo_celi ___c__call_("tusmo_ws_send_binary", kan.socket_handle, xog, 0);
+    }
+    
+    shaqo soo_hel_fariin(): qaamuus {
+        """
+        Soo hel fariin (Receive message)
+        
+        Soo celisa:
+            qaamuus: {
+                xaalad: "guul" / "qalad",
+                nooc: "qoraal" / "binary" / "ping" / "pong" / "xir",
+                xog: eray
+            }
+        
+        Tusaale:
+            keyd:qaamuus fariin = ws.soo_hel_fariin();
+            haddii (fariin["nooc"] == "qoraal") {
+                qor("Received: ", fariin["xog"]);
+            }
+        """
+        haddii (kan.waa_xiran == been) {
+            keyd:qaamuus qalad = {};
+            soo_celi qalad;
+        }
+        soo_celi ___c__call_("tusmo_ws_decode_frame", kan.socket_handle);
+    }
+    
+    shaqo dir_ping(): tiro {
+        """
+        Dir ping (Send ping frame)
+        
+        Soo celisa:
+            tiro: 0 haddii guulaysan, -1 haddii qalad dhacdo
+        """
+        haddii (kan.waa_xiran == been) {
+            soo_celi 1;
+        }
+        soo_celi ___c__call_("tusmo_ws_send_ping", kan.socket_handle);
+    }
+    
+    shaqo dir_pong(): tiro {
+        """
+        Dir pong (Send pong frame)
+        
+        Soo celisa:
+            tiro: 0 haddii guulaysan, -1 haddii qalad dhacdo
+        """
+        haddii (kan.waa_xiran == been) {
+            soo_celi 1;
+        }
+        soo_celi ___c__call_("tusmo_ws_send_pong", kan.socket_handle);
+    }
+    
+    shaqo xir(cod:tiro, sabab:eray): waxbo {
+        """
+        Xir WebSocket connection (Close WebSocket connection)
+        
+        Parameters:
+            cod (tiro): Close code (1000 = normal)
+            sabab (eray): Sabab
+        
+        Tusaale:
+            ws.xir(1000, "Normal shutdown");
+        """
+        haddii (kan.waa_xiran) {
+            ___c__call_("tusmo_ws_send_close", kan.socket_handle, cod, sabab);
+            kan.waa_xiran = been;
+        }
+    }
+    
+    shaqo ma_xiran(): miyaa {
+        """
+        Hubi haddii connection waa mid xiran (Check if connected)
+        
+        Soo celisa:
+            miyaa: run haddii xiran, been haddii kale
+        """
+        soo_celi kan.waa_xiran;
+    }
+}

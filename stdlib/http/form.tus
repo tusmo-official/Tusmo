@@ -1,0 +1,175 @@
+//stdlib/http/form.tus
+koox Form {
+    """
+    Koox Form waxa ay kaydisaa xogta foomka URL-encoded.
+    Waxay bixisaa 6 hawlood: _raadi/_jirtaa (interna), get/helid, madhan_miyaa, keys.
+    """
+    keyd:tix:eray _furayaal;
+    keyd:tix:eray _qiimayaal;
+
+    dhis(furayaal: tix:eray, qiimayaal: tix:eray) : waxbo {
+        """Dhiso foom cusub oo wata furayaal iyo qiimayaal."""
+        kan._furayaal = furayaal;
+        kan._qiimayaal = qiimayaal;
+    }
+
+    hawl _raadi(furaha: eray) : tiro {
+        """Soo celi index-ka furaha ama -1 haddii aanu jirin."""
+        keyd:tiro i = 0;
+        inta ay (i < dherer(kan._furayaal)) {
+            haddii (kan._furayaal[i] == furaha) {
+                soo_celi i;
+            }
+            i = i + 1;
+        }
+        soo_celi 0 - 1;
+    }
+
+    hawl _jirtaa(furaha: eray) : miyaa {
+        """Run haddii furaha laga helay foomkan."""
+        soo_celi kan._raadi(furaha) >= 0;
+    }
+
+    hawl get(magac: eray, caadi: eray = "") : eray {
+        """Soo celi qiimaha furaha ama caadi haddii aan la helin."""
+        keyd:tiro index = kan._raadi(magac);
+        haddii (index >= 0) {
+            soo_celi kan._qiimayaal[index];
+        }
+        soo_celi caadi;
+    }
+
+    hawl helid(magac: eray, caadi: eray = "") : eray {
+        """Magac kale oo la mid ah get()."""
+        soo_celi kan.get(magac, caadi);
+    }
+
+    hawl madhan_miyaa() : miyaa {
+        """Run haddii foomku aanu wax xog ah wadan."""
+        soo_celi dherer(kan._furayaal) == 0;
+    }
+
+    hawl keys() : tix:eray {
+        """Soo celi dhammaan furayaasha foomkan."""
+        soo_celi kan._furayaal;
+    }
+}
+
+hawl _http_hex_digit(ch: xaraf) : tiro {
+    """U beddel xaraf hex ah (0-9, a-f, A-F) tiro u dhexeysa 0 ilaa 15."""
+    keyd:tiro ascii = tiro(ch);
+    keyd:tiro zero = tiro('0');
+    keyd:tiro nine = tiro('9');
+    keyd:tiro big_a = tiro('A');
+    keyd:tiro big_f = tiro('F');
+    keyd:tiro small_a = tiro('a');
+    keyd:tiro small_f = tiro('f');
+
+    haddii (ascii >= zero iyo ascii <= nine) {
+        soo_celi ascii - zero;
+    } haddii (ascii >= big_a iyo ascii <= big_f) {
+        soo_celi (ascii - big_a) + 10;
+    } haddii (ascii >= small_a iyo ascii <= small_f) {
+        soo_celi (ascii - small_a) + 10;
+    }
+    soo_celi 0 - 1;
+}
+
+hawl _http_decode_component(raw: eray) : eray {
+    """Beddel isku darka %XX iyo + ee URL-encoded si uu u noqdo eray caadi ah."""
+    haddii (dherer(raw) == 0) {
+        soo_celi "";
+    }
+
+    keyd:eray natiijo = "";
+    keyd:tiro i = 0;
+    keyd:tiro len = dherer(raw);
+
+    inta ay (i < len) {
+        keyd:xaraf ch = raw[i];
+        haddii (ch == '+') {
+            natiijo = natiijo + " ";
+        } ama_haddii (ch == '%' iyo i + 2 < len) {
+            keyd:tiro high = _http_hex_digit(raw[i + 1]);
+            keyd:tiro low = _http_hex_digit(raw[i + 2]);
+            haddii (high >= 0 iyo low >= 0) {
+                keyd:tiro code = (high * 16) + low;
+                keyd:eray piece = _tusmo_char_to_str(code);
+                natiijo = natiijo + piece;
+                i = i + 2;
+            } haddii_kale {
+                natiijo = natiijo + ch;
+            }
+        } haddii_kale {
+            natiijo = natiijo + ch;
+        }
+        i = i + 1;
+    }
+
+    soo_celi natiijo;
+}
+
+hawl _http_store_form_entry(furayaal: tix:eray, qiimayaal: tix:eray, furaha: eray, qiime: eray) : waxbo {
+    """Ku dar ama cusboonaysii furaha/qiimaha la helay."""
+    haddii (dherer(furaha) == 0) {
+        soo_celi;
+    }
+
+    keyd:tiro i = 0;
+    inta ay (i < dherer(furayaal)) {
+        haddii (furayaal[i] == furaha) {
+            qiimayaal[i] = qiime;
+            soo_celi;
+        }
+        i = i + 1;
+    }
+
+    furayaal.gali(furaha);
+    qiimayaal.gali(qiime);
+}
+
+hawl _http_parse_urlencoded(body: eray) : Form {
+    """Akhriso body URL-encoded ah oo u beddel Form."""
+    keyd:tix:eray furayaal = [];
+    keyd:tix:eray qiimayaal = [];
+    haddii (dherer(body) == 0) {
+        soo_celi Form(furayaal, qiimayaal) cusub;
+    }
+    keyd:eray buffer = "";
+    keyd:eray current_key = "";
+    keyd:miyaa reading_key = run;
+    keyd:tiro i = 0;
+    keyd:tiro len = dherer(body);
+
+    inta ay (i <= len) {
+        keyd:xaraf ch;
+        haddii (i == len) {
+            ch = '&';
+        } haddii_kale {
+            ch = body[i];
+        }
+
+        haddii (ch == '=' iyo reading_key == run) {
+            current_key = _http_decode_component(buffer);
+            buffer = "";
+            reading_key = been;
+        } ama_haddii (ch == '&') {
+            keyd:eray decoded = _http_decode_component(buffer);
+            keyd:eray final_value = decoded;
+            buffer = "";
+            haddii (reading_key == run) {
+                current_key = decoded;
+                final_value = "";
+            }
+            _http_store_form_entry(furayaal, qiimayaal, current_key, final_value);
+            current_key = "";
+            reading_key = run;
+        } haddii_kale {
+            buffer = buffer + ch;
+        }
+
+        i = i + 1;
+    }
+
+    soo_celi Form(furayaal, qiimayaal) cusub;
+}

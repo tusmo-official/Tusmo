@@ -1,0 +1,16 @@
+// stdlib/nasiib.tus
+
+hawl bilaab_nasiib() => waxbo {
+    """Diyaari nasiibka ka hor inta la isticmaalin hawlaha kale."""
+    soo_celi ___c__call_("tusmo_init_random");
+}
+
+hawl nasiib_tiro(ugu_yaraan: tiro, ugu_badnaan: tiro) => tiro {
+    """Soo saar tiro  u dhaxaysa **ugu_yaraan** iyo **ugu_badnaan** ."""
+    soo_celi ___c__call_("tusmo_random_int", ugu_yaraan, ugu_badnaan);
+}
+
+hawl nasiib_jajab(ugu_yaraan: jajab, ugu_badnaan: jajab) => jajab {
+    """Soo saar jajab u dhaxaysa ugu_**yaraan** iyo **ugu_badnaan**."""
+    soo_celi ___c__call_("tusmo_random_double", ugu_yaraan, ugu_badnaan);
+}

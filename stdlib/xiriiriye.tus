@@ -1,0 +1,163 @@
+koox Xiriiriye {
+    """
+        Bilow socket madhan 
+        
+        Tusaale:
+            keyd:Xiriiriye socket = Xiriiriye() cusub;
+
+        Methods:
+           - samee_server(port:eray) => eray
+           - dhageyso(saf_sugid_ugu_badan:tiro) => tiro
+           - aqbal() => eray
+           - kuxirmo(host:eray, port:eray) => eray
+           - dir(xogta:eray) => tiro
+           - soo_hel(size:tiro) => eray
+           - xir()
+           - waa_ansax() => miyaa
+
+    """
+    keyd:eray Aqoonsi;
+    
+    dhis(): waxbo {
+        kan.Aqoonsi = "";
+    }
+    
+    shaqo samee_server(port:eray): eray {
+        """
+        Samee server kaa oo dhageysanaya port-ga
+    
+        Parameters:
+            port (eray): Port numberka server-ku uu dhageysanayo 
+            Tusaale: ("8080")
+        
+        Soo celisaa:
+            eray: 
+                Aqoonsi -> haddii guulaysato, 
+                ama "" haddii qalad uu dhaco
+        
+        Tusaale:
+            keyd:Xiriiriye server = Xiriiriye() cusub;
+            keyd:eray Aqoonsi = server.samee_server("9999");
+        """
+        soo_celi ___c__call_("tusmo_socket_create_server", port);
+    }
+    
+    shaqo dhageyso(saf_sugid_ugu_badan:tiro): tiro {
+        """
+        Dhegeyso Cidka ku soo xirmi doonta
+        
+        Parameters:
+            saf_sugid_ugu_badan (tiro): Tirada ugu badan ee client, 
+            ee ku jira safka sugidda (badanaa waxay u dhaxeyaan 5-10)
+        
+        Soo celisaa:
+            tiro: 
+                0 haddii guulaysato, 
+                Ama -1 haddii qalad uu dhaco
+        
+        Tusaale:
+            server.dhegeyso(5);
+        """
+        soo_celi ___c__call_("tusmo_socket_listen", kan.Aqoonsi, saf_sugid_ugu_badan);
+    }
+    
+    shaqo aqbal(): eray {
+        """
+        Aqbal Ku soo xirmaha (macmiilka/client)
+        
+        Soo celisa:
+            eray: 
+                Xiriirka Aqoonsiga ku sooxirmaha (macmiilka/client), 
+                ama "" haddii qalad uu dhaco
+        
+        Tusaale:
+            keyd:eray AqoonsigaClient = server.aqbal();
+        """
+        soo_celi ___c__call_("tusmo_socket_accept", kan.Aqoonsi);
+    }
+    
+    shaqo kuxirmo(host:eray, port:eray): eray {
+        """
+        kuxirmo server-ka, Waxaad ku xirmi server adigoo ah ku xirme client/macmil
+        
+        Parameters:
+            host (eray): Server hostname ama IP address 
+            Tusaale. ("google.com" or "127.0.0.1")
+            port (eray): Server-ka port-ti number-kiisa 
+            Tusaale. ("80")
+        
+        Soo celisaa:
+            eray: 
+                Xiriirka Aqoonsi haddii guulaysto, 
+                ama "" haddii qalad dhaco
+        
+        Tusaale:
+            keyd:Xiriiriye client = Xiriiriye() cusub;
+            keyd:eray Aqoonsi = client.kuxirmo("example.com", "80");
+        """
+        soo_celi ___c__call_("tusmo_socket_connect", host, port);
+    }
+    
+    shaqo dir(xogta:eray): tiro {
+        """
+        Ku dhex dir xog xiriiriyaha
+        
+        Parameters:
+            xogta (eray): Xogta la dirayo
+        
+        Soo celisaa:
+            tiro: 
+                Tirada bytes ee la diray, 
+                Ama -1 haddii qalad dhacdo
+        
+        Tusaale:
+            client.dir("GET / HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\n");
+        """
+        soo_celi ___c__call_("tusmo_socket_send", kan.Aqoonsi, xogta);
+    }
+    
+    shaqo soo_hel(size:tiro): eray {
+        """
+        Ka soo hel xog xiriiriyaha
+        
+        Parameters:
+            size (tiro): Cabbirka ugu badan ee xogta la soo heli karo (bytes-ahaan)
+        
+        Soo celisaa:
+            eray: 
+                Xogta la soo helay iyadoo eray ah
+        
+        Tusaale:
+            keyd:eray jawaab = client.soo_hel(1024);
+            qor(jawaab);
+        """
+        soo_celi ___c__call_("tusmo_socket_receive", kan.Aqoonsi, size);
+    }
+    
+    shaqo xir(): waxbo {
+        """
+        Xir xiriiriyaha
+        
+        Tusaale:
+            client.xir(); //waxaa sidaa ku xirmay xiriiriyhii
+        """
+        ___c__call_("tusmo_socket_close", kan.Aqoonsi);
+    }
+    
+    shaqo waa_ansax(): miyaa {
+        """
+        Hubi haddii xiriiriyaha uu yahahy mid ansax ah
+        
+        Soo celisaa:
+            miyaa: 
+                run haddii xiriiriyaha uu noqdo mid ansax ah, 
+                been haddii kale
+        
+        Tusaale:
+            haddii (socket.waa_ansax()) {
+                qor("Socket waa shaqeynayaa!");
+            }
+        """
+        soo_celi ___c__call_("tusmo_socket_is_valid", kan.Aqoonsi);
+    }
+}

@@ -1,0 +1,51 @@
+// stdlib/wakhti.tus
+
+koox Wakhti {
+    """
+    Koox wakhti oo bixisa 7 hawlood:
+    - hadda(): unix timestamp.
+    - qaab(): format wakhti sida strftime.
+    - sekeno/daqiiqado/saacado: qaybaha wakhtiga hada.
+    - maalin/bil/sanad: xogta taariikhda maanta.
+    """
+
+    hawl hadda() : jajab {
+        """Soo celi unix timestamp (ilbiriqsiyo jajab ah)."""
+        soo_celi ___c__call_("tusmo_time");
+    }
+
+    hawl qaab(format: eray) : eray {
+        """Qaabee wakhtiga hadda la joogo adigoo adeegsanaya kalmadaha format."""
+        soo_celi ___c__call_("tusmo_format_time", format);
+    }
+
+    hawl sekeno() : tiro {
+        """Soo celi ilbiriqsiyada hadda (0-59)."""
+        soo_celi ___c__call_("tusmo_get_seconds");
+    }
+
+    hawl daqiiqado() : tiro {
+        """Soo celi daqiiqadaha hadda (0-59)."""
+        soo_celi ___c__call_("tusmo_get_minutes");
+    }
+
+    hawl saacado() : tiro {
+        """Soo celi saacadaha hadda (0-23)."""
+        soo_celi ___c__call_("tusmo_get_hours");
+    }
+
+    hawl maalin() : tiro {
+        """Soo celi maalinta bisha (1-31)."""
+        soo_celi ___c__call_("tusmo_get_day");
+    }
+
+    hawl bil() : tiro {
+        """Soo celi bisha (1-12)."""
+        soo_celi ___c__call_("tusmo_get_month");
+    }
+
+    hawl sanad() : tiro {
+        """Soo celi sanadka buuxa."""
+        soo_celi ___c__call_("tusmo_get_year");
+    }
+}

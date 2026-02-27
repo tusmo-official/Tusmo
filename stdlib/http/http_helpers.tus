@@ -1,0 +1,96 @@
+// stdlib/http/http_helpers.tus
+// Helper functions with explicit return types for HTTP C calls
+// This eliminates need for semantic analyzer mappings!
+
+// Server functions
+hawl _http_server_listen(port: eray): eray {
+    """Create and listen on HTTP server"""
+    soo_celi ___c__call_("tusmo_http_server_listen", port);
+}
+
+hawl _http_server_accept(server_handle: eray): qaamuus {
+    """Accept client connection"""
+    soo_celi ___c__call_("tusmo_http_server_accept", server_handle);
+}
+
+hawl _http_server_close(server_handle: eray): waxbo {
+    """Close HTTP server"""
+    ___c__call_("tusmo_http_server_close", server_handle);
+}
+
+// Payload functions
+hawl _http_payload_handle(xog: qaamuus): eray {
+    """Get handle from payload"""
+    soo_celi ___c__call_("tusmo_http_payload_handle", xog);
+}
+
+hawl _http_payload_status(xog: qaamuus): eray {
+    """Get status from payload"""
+    soo_celi ___c__call_("tusmo_http_payload_status", xog);
+}
+
+hawl _http_payload_error(xog: qaamuus): eray {
+    """Get error from payload"""
+    soo_celi ___c__call_("tusmo_http_payload_error", xog);
+}
+
+// Request functions
+hawl _http_request_method(handle: eray): eray {
+    """Get HTTP method"""
+    soo_celi ___c__call_("tusmo_http_request_method", handle);
+}
+
+hawl _http_request_path(handle: eray): eray {
+    """Get request path"""
+    soo_celi ___c__call_("tusmo_http_request_path", handle);
+}
+
+hawl _http_request_body(handle: eray): eray {
+    """Get request body"""
+    soo_celi ___c__call_("tusmo_http_request_body", handle);
+}
+
+hawl _http_request_client(handle: eray): eray {
+    """Get client info"""
+    soo_celi ___c__call_("tusmo_http_request_client", handle);
+}
+
+hawl _http_request_header(handle: eray, name: eray): eray {
+    """Get header value"""
+    soo_celi ___c__call_("tusmo_http_request_header", handle, name);
+}
+
+// Response functions
+hawl _http_send_response(handle: eray, status: tiro, content_type: eray, body: eray): waxbo {
+    """Send HTTP response"""
+    ___c__call_("tusmo_http_send_response", handle, status, content_type, body);
+}
+
+hawl _http_qaamuus_to_json(qaamuus_data: qaamuus): eray {
+    """Convert qaamuus to JSON"""
+    soo_celi ___c__call_("tusmo_http_qaamuus_to_json", qaamuus_data);
+}
+
+hawl _http_request_socket_fd(handle: eray): tiro {
+    """
+    Hel socket file descriptor ka codsiga HTTP
+    (Get socket file descriptor from HTTP request)
+    
+    Tan waxaa loo isticmaalaa WebSocket upgrade. Waxay soo celisaa 
+    socket FD-ka taas oo WebSocket u isticmaali karto.
+    
+    Parameters:
+        handle (eray): HTTP request handle
+    
+    Soo celisa:
+        tiro: Socket file descriptor, -1 haddii qalad dhacdo
+    
+    Tusaale:
+        keyd:tiro fd = _http_request_socket_fd(req._handle);
+    """
+    soo_celi ___c__call_("tusmo_http_request_socket_fd", handle);
+}
+
+hawl _tusmo_char_to_str(c: tiro) : eray {
+    soo_celi ___c__call_("tusmo_str_format", "%c", c);
+}

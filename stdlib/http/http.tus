@@ -1,0 +1,62 @@
+//stdlib/http/http.tus
+keen "codsi";
+keen "http_helpers";
+
+koox Http {
+    """
+    Server HTTP fudud oo bixiya 2 hawlood waaweyn:
+    - dhegeyso: fur adeeg dhageysta oo yaqaan handler.
+    - jooji: hakinta wareegga dhegeysiga si nabad ah.
+    """
+    keyd:eray _server_handle;
+    keyd:miyaa _socda;
+
+    dhis() : waxbo {
+        """Diyaarso xaalada bilawga ee server-ka."""
+        kan._server_handle = "";
+        kan._socda = been;
+    }
+
+    hawl dhegeyso(port: eray, maamule: hawl(Codsi): waxbo) : waxbo {
+        """Fur server ku xidhan port oo u gudbi codsi kasta maamule(codsi)."""
+        // Use wrapper with explicit return type!
+        keyd:eray handle = _http_server_listen(port);
+        
+        haddii (dherer(handle) == 0) {
+            qor("Tusmo HTTP: Lama furin server-ka godka ", port);
+            soo_celi;
+        }
+
+        kan._server_handle = handle;
+        kan._socda = run;
+
+        inta ay (kan._socda == run) {
+            // Use wrapper - compiler knows it returns qaamuus!
+            keyd:qaamuus xog = _http_server_accept(kan._server_handle);
+            keyd:eray xaalad = _http_payload_status(xog);
+            
+            haddii (xaalad == "qalad") {
+                qor("Tusmo HTTP qalad: ", _http_payload_error(xog));
+            } haddii_kale {
+                keyd:Codsi codsi = Codsi(xog) cusub;
+                // Use wrapper for handle
+                codsi._handle = _http_payload_handle(xog);
+                maamule(codsi);
+            }
+        }
+
+        _http_server_close(kan._server_handle);
+    }
+
+    hawl jooji() : waxbo {
+        """Jooji wareegga dhegeysiga oo xidh handle-ka jira."""
+        haddii (kan._socda == run) {
+            kan._socda = been;
+            haddii (dherer(kan._server_handle) > 0) {
+                _http_server_close(kan._server_handle);
+            }
+        }
+    }
+
+    
+}

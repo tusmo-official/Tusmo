@@ -1,0 +1,119 @@
+koox Os {
+    """
+    Kooxda Os waxa ay ka koobantahay  19 hawlood oo kala nidaaminaya faylasha iyo sytem-ka:
+    - halkee 
+    - u_guur 
+    - itus
+    - abuur_folder
+    - tirtir_* 
+    - majiraa
+    - fayl_miyaa
+    - folder_miyaa
+    - hel_deegaan 
+    - deji_deegaan
+    - fuli
+    - koobi/nuqul
+    - u_dhaqaaji
+    - aqri_fayl
+    - qor_fayl
+    - isku_dar_waddo
+    - cabbir_fayl
+    Hawl walba waxay bixisaa docstring u gaar ah si aad si fudud ugu hesho isticmaalka.
+    """
+    dhis() : waxbo {}
+
+    hawl halkee() : eray {
+        """Soo celi full path-ka kabilaabata root system-ka ilaayo folder-ka aad hadda ku sugantahay"""
+        soo_celi ___c__call_("tusmo_os_cwd");
+    }
+
+    hawl u_guur(folder_kee_aadaa: eray) : waxbo {
+        """Kabax folderka aad joogto, Aad folder kale."""
+        ___c__call_("tusmo_os_cd", folder_kee_aadaa);
+    }
+
+    hawl itus(folder_kee_ku_tusiyaa_waxa_ku_jira: eray) : tix:eray {
+        """Soo celi liiska faylasha iyo folder-da ku jira."""
+        soo_celi ___c__call_("tusmo_os_list_dir", folder_kee_ku_tusiyaa_waxa_ku_jira);
+    }
+
+    hawl abuur_folder(path: eray) : waxbo {
+        """Soo saar gal cusub oo la yiraahdo path."""
+        ___c__call_("tusmo_os_mkdir", path);
+    }
+
+    hawl tirtir_folder(path: eray) : waxbo {
+        """Ka saar gal madhan oo jira."""
+        ___c__call_("tusmo_os_rmdir", path);
+    }
+
+    hawl tirtir_fayl(path: eray) : waxbo {
+        """Tirtir faylka lagu tilmaamay path."""
+        ___c__call_("tusmo_os_rmfile", path);
+    }
+
+    hawl majiraa(path: eray) : miyaa {
+        """Hubi in fayl ama gal uu jiro."""
+        soo_celi ___c__call_("tusmo_os_path_exists", path);
+    }
+
+    hawl fayl_miyaa(path: eray) : miyaa {
+        """Run haddii path uu yahay fayl caadi ah."""
+        soo_celi ___c__call_("tusmo_os_is_file", path);
+    }
+
+    hawl folder_miyaa(path: eray) : miyaa {
+        """Run haddii path uu yahay gal."""
+        soo_celi ___c__call_("tusmo_os_is_dir", path);
+    }
+
+    hawl hel_deegaan(name: eray) : eray {
+        """Akhriso qiimaha is-beddelka deegaanka (ENV)."""
+        soo_celi ___c__call_("tusmo_os_getenv", name);
+    }
+
+    hawl deji_deegaan(name: eray, value: eray) : waxbo {
+        """Deji qiime cusub oo loogu talagalay is-beddelka deegaanka."""
+        ___c__call_("tusmo_os_setenv", name, value);
+    }
+
+    hawl fuli(command: eray) : tiro {
+        """Orod amar shell ah oo soo celi koodhka baxa."""
+        soo_celi ___c__call_("tusmo_os_system", command);
+    }
+
+    hawl koobi(source: eray, destination: eray) : waxbo {
+        """Nuqul faylka source kuna kaydi destination."""
+        ___c__call_("tusmo_os_copy", source, destination);
+    }
+
+    hawl nuqul(source: eray, destination: eray) : waxbo {
+        """Magac kale oo la mid ah koobi()."""
+        ___c__call_("tusmo_os_copy", source, destination);
+    }
+
+    hawl u_dhaqaaji(old_path: eray, new_path: eray) : waxbo {
+        """Dhaqaaji ama magac-beddel fayl/gal."""
+        ___c__call_("tusmo_os_move_rename", old_path, new_path);
+    }
+
+    hawl aqri_fayl(path: eray) : eray {
+        """Soo celi content-ka faylka oo dhan sida eray."""
+        soo_celi ___c__call_("tusmo_os_read_file", path);
+    }
+
+    hawl qor_fayl(path: eray, content: eray, append: miyaa) : waxbo {
+        """Qor content ku jira faylka; ku dar haddii append==run."""
+        ___c__call_("tusmo_os_write_file", path, content, append);
+    }
+
+    hawl isku_dar_waddo(part1: eray, part2: eray) : eray {
+        """Ku dar laba qaybood si aad u hesho waddo buuxda."""
+        soo_celi ___c__call_("tusmo_os_path_join", part1, part2);
+    }
+
+    hawl cabbir_fayl(path: eray) : tiro {
+        """Soo celi cabbirka faylka (bytes)."""
+        soo_celi ___c__call_("tusmo_os_file_size", path);
+    }
+}

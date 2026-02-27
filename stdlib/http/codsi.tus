@@ -1,0 +1,131 @@
+keen "form";
+keen "http_helpers";
+
+koox Codsi {
+    """
+    Koox Codsi waxay mataleysaa codsi HTTP oo soo galay.
+    Waxay bixinaysaa 10 hawlood: hab, waddo, xambaare, macmiil, hel_madax,
+    jawaab_eray, jawaab, jawaab_json, jawaab_caadi, foom; intaa waxaa dheer dhis().
+    """
+    keyd:eray _handle;
+    keyd:Form _foom_cache;
+    keyd:miyaa _foom_ready;
+
+    dhis(xog: qaamuus) : waxbo {
+        """Kaydi xogta gudaha kana diyaari foom cache madhan."""
+        kan._handle = "";  // Will be set by http.tus after construction
+        keyd:tix:eray f = [];
+        keyd:tix:eray q = [];
+        kan._foom_cache = Form(f, q) cusub;
+        kan._foom_ready = been;
+    }
+
+    hawl hab() : eray {
+        """Soo celi habka HTTP (GET, POST...)."""
+        haddii (dherer(kan._handle) == 0) {soo_celi "";}
+        
+        // Use wrapper!
+        keyd:eray habka = _http_request_method(kan._handle);
+
+        haddii(habka == "POST"){soo_celi "DHIGID";} 
+        ama_haddii(habka == "GET"){soo_celi "HELID";}
+        soo_celi habka;
+    }
+
+    hawl waddo() : eray {
+        """Soo celi waddada uu codsigu dalbaday."""
+        haddii (dherer(kan._handle) == 0) {
+            soo_celi "";
+        }
+        soo_celi _http_request_path(kan._handle);
+    }
+
+    hawl xambaare() : eray {
+        """Soo celi jidhka (body) codsiga sida eray."""
+        haddii (dherer(kan._handle) == 0) {
+            soo_celi "";
+        }
+        soo_celi _http_request_body(kan._handle);
+    }
+
+    hawl macmiil() : eray {
+        """Soo celi aqoonsiga macmiilka (IP + port)."""
+        haddii (dherer(kan._handle) == 0) {
+            soo_celi "";
+        }
+        soo_celi _http_request_client(kan._handle);
+    }
+
+    hawl hel_madax(magac: eray) : eray {
+        """Soo celi qiimaha header-ka la codsaday."""
+        haddii (dherer(kan._handle) == 0) {
+            soo_celi "";
+        }
+        soo_celi _http_request_header(kan._handle, magac);
+    }
+
+    hawl jawaab_eray(nuxur: eray, xaalad: tiro, nooca: eray) : waxbo {
+        """Soo dir jawaab qoraal ah oo leh xaalad iyo MIME-type."""
+        haddii (dherer(kan._handle) == 0) {
+            soo_celi;
+        }
+        _http_send_response(kan._handle, xaalad, nooca, nuxur);
+    }
+
+    hawl jawaab(nuxur: qaamuus, xaalad: tiro = 200, nooca: eray = "application/json; charset=utf-8") : waxbo {
+        """Soo dir qaamuus ahaan (JSON) oo dooro xaalad iyo content-type."""
+        haddii (dherer(kan._handle) == 0) {
+            soo_celi;
+        }
+        // Use wrapper!
+        _http_send_response(kan._handle, xaalad, nooca, _http_qaamuus_to_json(nuxur));
+    }
+
+    hawl jawaab_qaamuus(nuxur: qaamuus) : waxbo {
+        """Kalsooni loogu yeero jawaab() oo leh JSON iyo xaalad 200."""
+        kan.jawaab(nuxur, 200, "application/json; charset=utf-8");
+    }
+
+    hawl jawaab_caadi(nuxur: eray) : waxbo {
+        """Soo dir nuxur eray ah oo leh text/html iyo xaalad 200."""
+        kan.jawaab_eray(nuxur, 200, "text/html; charset=utf-8");
+    }
+
+    hawl hel_socket_handle(): eray {
+        """
+        Hel socket handle-ka asalka ah ee codsiga HTTP
+        (Get underlying socket handle from HTTP request)
+        
+        Tan waxaa loo isticmaalaa HTTP → WebSocket upgrade. 
+        Marka codsiga uu yahay WebSocket upgrade request, 
+        socket handle-kan waxaa loo marin karaa WebSocket library
+        si uu ugu bedelo protocol.
+        
+        Soo celisa:
+            eray: Socket handle oo loogu talagalay WebSocket
+        
+        Tusaale:
+            // WebSocket upgrade example
+            keyd:eray upgrade = req.hel_madax("Upgrade");
+            haddii (upgrade == "websocket") {
+                keyd:WebXiriiriye ws = WebXiriiriye() cusub;
+                keyd:eray socket_handle = req.hel_socket_handle();
+                keyd:eray ws_key = req.hel_madax("Sec-WebSocket-Key");
+                ws.kor_u_qaad(socket_handle, ws_key);
+            }
+        """
+        keyd:tiro fd = _http_request_socket_fd(kan._handle);
+        // Create proper socket handle from FD
+        soo_celi ___c__call_("tusmo_socket_from_fd", fd);
+    }
+
+    hawl foom() : Form {
+        """Akhriso oo cache garee xogta foomka (application/x-www-form-urlencoded)."""
+        haddii (kan._foom_ready == run) {
+            soo_celi kan._foom_cache;
+        }
+        kan._foom_cache = _http_parse_urlencoded(kan.xambaare());
+        kan._foom_ready = run;
+        soo_celi kan._foom_cache;
+    }
+}
