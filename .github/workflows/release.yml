@@ -105,9 +105,9 @@ jobs:
           cp -r /c/msys64/mingw64/include/gc bundle/include/ || true
           cp -r zig bundle/toolchain/zig
           cat > bundle/toolchain/cc.bat <<'EOF'
-@echo off
-"%~dp0\zig\zig.exe" cc %*
-EOF
+          @echo off
+          "%~dp0\zig\zig.exe" cc %*
+          EOF
 
       - name: Package
         shell: bash
