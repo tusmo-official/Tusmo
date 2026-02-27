@@ -117,10 +117,18 @@ def main():
 
         all_sources_str = " ".join([f'"{path}"' for path in source_files_to_compile])
 
+        # Allow overriding compiler/lib/include via env vars (for bundled installs)
+        cc = os.environ.get("TUSMO_CC", "gcc")
+        lib_dir_override = os.environ.get("TUSMO_LIB_DIR")
+        include_override = os.environ.get("TUSMO_INCLUDE_DIR")
+
+        include_flag = f'-I"{include_override}"' if include_override else f'-I"{runtime_dir}"'
+        lib_flag = f' -L"{lib_dir_override}"' if lib_dir_override else ""
+
         # The final, dynamic compile command
         compile_command = (
-            f'gcc -O3 -march=native -flto -o "{binary}" '
-            f'{all_sources_str} -I"{runtime_dir}" -lgc'
+            f'"{cc}" -O3 -march=native -flto -o "{binary}" '
+            f'{all_sources_str} {include_flag}{lib_flag} -lgc'
         )
 
         compile_result = os.system(compile_command)

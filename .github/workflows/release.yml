@@ -1,0 +1,105 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            triplet: linux-x86_64
+            zig_url: https://ziglang.org/download/0.11.0/zig-linux-x86_64-0.11.0.tar.xz
+          - os: macos-13
+            triplet: macos-x86_64
+            zig_url: https://ziglang.org/download/0.11.0/zig-macos-x86_64-0.11.0.tar.xz
+          - os: macos-14
+            triplet: macos-arm64
+            zig_url: https://ziglang.org/download/0.11.0/zig-macos-aarch64-0.11.0.tar.xz
+          - os: windows-2022
+            triplet: windows-x86_64
+            zig_url: https://ziglang.org/download/0.11.0/zig-windows-x86_64-0.11.0.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgc-dev unzip
+          pip install pyinstaller
+
+      - name: Install deps (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install boehmgc
+          pip install pyinstaller
+
+      - name: Install deps (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          choco install -y msys2
+          setx PATH "%PATH%;C:\tools\msys64\mingw64\bin"
+          C:\tools\msys64\usr\bin\bash -lc "pacman -Syu --noconfirm; pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-libgc"
+          pip install pyinstaller
+
+      - name: Download zig
+        run: |
+          mkdir zig
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            curl -L "${{ matrix.zig_url }}" -o zig.zip
+            tar -xf zig.zip --strip-components=1 -C zig
+          else
+            curl -L "${{ matrix.zig_url }}" -o zig.tar.xz
+            tar -xf zig.tar.xz --strip-components=1 -C zig
+          fi
+
+      - name: Freeze tusmo CLI
+        run: pyinstaller --onefile tusmo.py
+
+      - name: Collect bundle
+        shell: bash
+        run: |
+          mkdir -p bundle/lib bundle/include bundle/bin bundle/runtime bundle/stdlib bundle/toolchain
+          cp -r runtime stdlib bundle/
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            cp /usr/lib/x86_64-linux-gnu/libgc.a bundle/lib/
+            cp -r /usr/include/gc bundle/include/
+            cp dist/tusmo bundle/bin/
+            cp -r zig bundle/toolchain/zig
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            GC_ROOT=$(brew --prefix boehmgc)
+            cp "$GC_ROOT/lib/libgc.a" bundle/lib/
+            cp -r "$GC_ROOT/include/gc" bundle/include/
+            cp dist/tusmo bundle/bin/
+            cp -r zig bundle/toolchain/zig
+          else
+            cp dist/tusmo.exe bundle/bin/
+            cp /c/tools/msys64/mingw64/lib/libgc.a bundle/lib/ || true
+            cp -r /c/tools/msys64/mingw64/include/gc bundle/include/ || true
+            cp -r zig bundle/toolchain/zig
+            cat > bundle/toolchain/cc.bat <<'EOF'
+@echo off
+"%~dp0\zig\zig.exe" cc %*
+EOF
+          fi
+
+          printf '%s\n' '#!/usr/bin/env bash' 'exec "$(dirname "$0")/toolchain/zig/zig" cc "$@"' > bundle/toolchain/cc
+          chmod +x bundle/toolchain/cc
+
+      - name: Package
+        shell: bash
+        run: tar -czf tusmo-${{ matrix.triplet }}.tar.gz -C bundle .
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: tusmo-${{ matrix.triplet }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
