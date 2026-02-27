@@ -32,22 +32,33 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgc-dev unzip
-          pip install pyinstaller
+          sudo apt-get install -y libgc-dev xz-utils unzip
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller
 
       - name: Install deps (macOS)
         if: startsWith(matrix.os, 'macos')
         run: |
           brew install boehmgc
-          pip install pyinstaller
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller
 
       - name: Install deps (Windows)
         if: startsWith(matrix.os, 'windows')
+        uses: msys2/setup-msys2@v2
+        with:
+          release: true
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-libgc
+
+      - name: Install PyInstaller (Windows)
+        if: startsWith(matrix.os, 'windows')
         run: |
-          choco install -y msys2
-          setx PATH "%PATH%;C:\tools\msys64\mingw64\bin"
-          C:\tools\msys64\usr\bin\bash -lc "pacman -Syu --noconfirm; pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-libgc"
-          pip install pyinstaller
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller
 
       - name: Download zig
         run: |
@@ -63,7 +74,8 @@ jobs:
       - name: Freeze tusmo CLI
         run: pyinstaller --onefile tusmo.py
 
-      - name: Collect bundle
+      - name: Collect bundle (Linux/macOS)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           mkdir -p bundle/lib bundle/include bundle/bin bundle/runtime bundle/stdlib bundle/toolchain
@@ -72,26 +84,30 @@ jobs:
             cp /usr/lib/x86_64-linux-gnu/libgc.a bundle/lib/
             cp -r /usr/include/gc bundle/include/
             cp dist/tusmo bundle/bin/
-            cp -r zig bundle/toolchain/zig
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          else
             GC_ROOT=$(brew --prefix boehmgc)
             cp "$GC_ROOT/lib/libgc.a" bundle/lib/
             cp -r "$GC_ROOT/include/gc" bundle/include/
             cp dist/tusmo bundle/bin/
-            cp -r zig bundle/toolchain/zig
-          else
-            cp dist/tusmo.exe bundle/bin/
-            cp /c/tools/msys64/mingw64/lib/libgc.a bundle/lib/ || true
-            cp -r /c/tools/msys64/mingw64/include/gc bundle/include/ || true
-            cp -r zig bundle/toolchain/zig
-            cat > bundle/toolchain/cc.bat <<'EOF'
+          fi
+          cp -r zig bundle/toolchain/zig
+          printf '%s\n' '#!/usr/bin/env bash' 'exec "$(dirname "$0")/toolchain/zig/zig" cc "$@"' > bundle/toolchain/cc
+          chmod +x bundle/toolchain/cc
+
+      - name: Collect bundle (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p bundle/lib bundle/include bundle/bin bundle/runtime bundle/stdlib bundle/toolchain
+          cp -r runtime stdlib bundle/
+          cp dist/tusmo.exe bundle/bin/
+          cp /c/msys64/mingw64/lib/libgc.a bundle/lib/ || true
+          cp -r /c/msys64/mingw64/include/gc bundle/include/ || true
+          cp -r zig bundle/toolchain/zig
+          cat > bundle/toolchain/cc.bat <<'EOF'
 @echo off
 "%~dp0\zig\zig.exe" cc %*
 EOF
-          fi
-
-          printf '%s\n' '#!/usr/bin/env bash' 'exec "$(dirname "$0")/toolchain/zig/zig" cc "$@"' > bundle/toolchain/cc
-          chmod +x bundle/toolchain/cc
 
       - name: Package
         shell: bash
